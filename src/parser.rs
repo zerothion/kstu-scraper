@@ -4,19 +4,21 @@ use scraper::{Html, Selector};
 #[derive(Debug, Clone)]
 pub struct Parser {
     pub faculties_blacklist: Vec<String>,
+    pub base_url: String,
 }
 
 impl Default for Parser {
     fn default() -> Self {
         Self {
             faculties_blacklist: vec!["Преподаватели".to_string(), "Аудитории".to_string()],
+            base_url: "http://online.i-klgtu.ru".to_string(),
         }
     }
 }
 
 impl Parser {
-    pub fn parse_faculties(&self, html: String) -> Vec<Faculty> {
-        let html = Html::parse_document(html.as_str());
+    pub fn parse_faculties<S: AsRef<str>>(&self, html: S) -> Vec<Faculty> {
+        let html = Html::parse_document(html.as_ref());
 
         let sel = Selector::parse("a[href]").unwrap();
         let mut sel = html.select(&sel);
@@ -29,7 +31,7 @@ impl Parser {
                     Ok(url) => {
                         let faculty = Faculty {
                             name: elem.text().collect::<String>(),
-                            url: url.to_string(),
+                            url: url.as_str().to_string(),
                         };
 
                         if self.faculties_blacklist.contains(&faculty.name) {
@@ -48,10 +50,10 @@ impl Parser {
         faculties
     }
 
-    pub fn parse_groups(&self, html: String, url_base: &str) -> Vec<Group> {
-        let html = Html::parse_document(html.as_str());
-        let url_base = url::Url::parse(url_base)
-            .expect("url_base should be a valid url");
+    pub fn parse_groups<S: AsRef<str>>(&self, html: S) -> Vec<Group> {
+        let html = Html::parse_document(html.as_ref());
+        let url_base = url::Url::parse(self.base_url.as_ref())
+            .expect("base_url should be a valid url");
 
         let sel = Selector::parse("a ~ a[href]").unwrap();
         let mut sel = html.select(&sel);
@@ -67,7 +69,7 @@ impl Parser {
                 Ok(url) => {
                     let group = Group {
                         name: elem.text().collect::<String>(),
-                        url: url.to_string(),
+                        url: url.as_str().to_string(),
                     };
 
                     debug!("found group {}", group.name);

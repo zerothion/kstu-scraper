@@ -2,7 +2,8 @@ use crate::{
     Parser,
     types::{
         TimeFrame,
-        Faculty, Group,
+        Faculty,
+        Group,
     },
 };
 use isahc::AsyncReadResponseExt;
@@ -36,11 +37,7 @@ impl Scraper {
 
     pub async fn scrap_groups(&self, faculty: Faculty) -> Result<Vec<Group>, Error> {
         let text = scrap_text(faculty.url.as_str()).await?;
-        let url = url::Url::parse(faculty.url.as_str())
-            .expect("faculty.url should be a valid url");
-        let base = url.host_str()
-            .expect("faculty.url should always have a host");
-        Ok(self.parser.parse_groups(text, &format!("http://{base}")))
+        Ok(self.parser.parse_groups(text))
     }
 
     pub async fn scrap_all_groups(&self, when: TimeFrame) -> Result<Vec<Group>, Error> {
