@@ -5,6 +5,16 @@ pub enum TimeFrame {
     Preview,
 }
 
+impl TimeFrame {
+    pub fn as_url_part(&self) -> &'static str {
+        match self {
+            TimeFrame::Previous => "old",
+            TimeFrame::Current => "current",
+            TimeFrame::Preview => "new",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Faculty {
     pub name: String, // e.g. Институт цифровых технологий

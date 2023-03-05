@@ -5,15 +5,15 @@ use crate::{
         Faculty, Group,
     },
 };
+use isahc::AsyncReadResponseExt;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("reqwest::get failed")]
-    GetRequestFailed,
-
-    #[error("failed to get text from response")]
-    DecodingError,
+    #[error("HTTP error: {0}")]
+    Http(#[from] isahc::Error),
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -22,21 +22,14 @@ pub struct Scraper {
 }
 
 async fn scrap_text(url: &str) -> Result<String, Error> {
-    let html = reqwest::get(url).await;
-    if let Ok(html) = html {
-        if let Ok(text) = html.text().await {
-            Ok(text)
-        } else {
-            Err(Error::DecodingError)
-        }
-    } else {
-        Err(Error::GetRequestFailed)
-    }
+    let mut response = isahc::get_async(url).await?;
+    let text = response.text().await?;
+    Ok(text)
 }
 
 impl Scraper {
     pub async fn scrap_faculties(&self, when: TimeFrame) -> Result<Vec<Faculty>, Error> {
-        let url = format!("http://i-klgtu.ru/{}", when.as_url_part());
+        let url = format!("https://i-klgtu.ru/{}/", when.as_url_part());
         let text = scrap_text(url.as_str()).await?;
         Ok(self.parser.parse_faculties(text))
     }
