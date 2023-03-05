@@ -11,8 +11,8 @@ fn main() {
 
 async fn run() {
     let scraper = kstu::Scraper::default();
-    let faculties = scraper.scrap_faculties(Default::default())
+    let groups = scraper.scrap_all_groups(Default::default())
         .await
         .unwrap();
-    println!("faculties - {:?}", faculties);
+    println!("groups - {:?}", groups);
 }
