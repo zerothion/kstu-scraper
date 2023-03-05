@@ -4,6 +4,9 @@ pub mod types;
 pub mod parser;
 pub mod scraper;
 
+#[cfg(test)]
+mod tests;
+
 pub use crate::{
     parser::Parser,
     scraper::Scraper,
