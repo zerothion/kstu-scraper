@@ -23,14 +23,14 @@ pub struct GroupTimetable {
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum GroupTimetableKind {
-    Mono(SubGroupTimetable),
-    Dual((SubGroupTimetable, SubGroupTimetable)),
+    Mono(Timetable),
+    Dual(DualGroupTimetable),
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct SubGroupTimetable {
-    pub name: String,
-    pub timetable: Timetable,
+pub struct DualGroupTimetable {
+    pub names: (String, String),
+    pub timetables: (Timetable, Timetable),
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -60,6 +60,7 @@ pub enum ClassKind {
     Lab,
 }
 
+// -- Impl blocks --
 impl Class {
     pub(crate) fn new(time: String, name_raw: String, lecturer: String, room: String) -> Self {
         let mut name = name_raw.split_whitespace().collect_vec();

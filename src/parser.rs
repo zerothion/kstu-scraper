@@ -1,4 +1,6 @@
-use crate::parser::types::{Faculty, Group, Class, Schedule, Timetable};
+use crate::parser::types::{
+    Faculty, Group, Class, Schedule, Timetable, DualGroupTimetable, GroupTimetableKind,
+};
 use itertools::Itertools;
 use scraper::{Html, Selector};
 
@@ -176,13 +178,12 @@ impl Parser {
         let timetables = Timetable::new2(schedules);
 
         GroupTimetable {
-            name: group_name.clone(),
+            name: group_name,
             kind: match subgroup_names {
-                Some((sg_a, sg_b)) => types::GroupTimetableKind::Dual((
-                    types::SubGroupTimetable { name: sg_a, timetable: timetables.0 },
-                    types::SubGroupTimetable { name: sg_b, timetable: timetables.1 },
-                )),
-                None => types::GroupTimetableKind::Mono(types::SubGroupTimetable { name: group_name, timetable: timetables.0 })
+                Some(names) => GroupTimetableKind::Dual(
+                    DualGroupTimetable { names, timetables, }
+                ),
+                None => GroupTimetableKind::Mono(timetables.0)
             },
         }
     }
