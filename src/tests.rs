@@ -104,7 +104,6 @@ macro_rules! class {
 #[test]
 fn parsing_schedule_dual_01() {
     // "21-ВТ-1" dual_01
-    tracing_subscriber::fmt::init();
     let parser = crate::Parser::default();
     let html = include_str!("../test_data/schedule_dual_01.html");
     let timetable = parser.parse_timetable(html);
@@ -342,7 +341,6 @@ fn parsing_schedule_dual_01() {
 #[test]
 fn parsing_schedule_mono_01() {
     // "21-АП" mono_01
-    tracing_subscriber::fmt::init();
     let parser = crate::Parser::default();
     let html = include_str!("../test_data/schedule_mono_01.html");
     let timetable = parser.parse_timetable(html);
