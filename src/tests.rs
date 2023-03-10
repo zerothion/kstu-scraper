@@ -1,4 +1,4 @@
-use crate::types::{Faculty, Group};
+use crate::parser::types::{Faculty, Group};
 
 #[test]
 fn parsing_faculties_01() {

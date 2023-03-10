@@ -1,5 +1,10 @@
-use crate::types::{Faculty, Group};
+use crate::parser::types::{Faculty, Group, Class, Schedule, Timetable};
+use itertools::Itertools;
 use scraper::{Html, Selector};
+
+use self::types::GroupTimetable;
+
+pub mod types;
 
 #[derive(Debug, Clone)]
 pub struct Parser {
@@ -81,5 +86,104 @@ impl Parser {
             }
         }
         groups
+    }
+
+    pub fn parse_timetable<S: AsRef<str>>(&self, html: S) -> GroupTimetable {
+        let html = Html::parse_document(html.as_ref());
+        // 7th row -> group name
+        // 8th row -> subgroup names (opt., only present if two subgroups)
+
+        let row_sel = Selector::parse("table > tbody > tr").unwrap(); // extra specific just in case.
+        let mut row_iter = html
+            .select(&row_sel)
+            .skip(6); // Skips useless "whitespace"
+
+        let data_sel = Selector::parse("td[colspan]").unwrap();
+        let group_name = row_iter
+            .next().unwrap()
+            .select(&data_sel)
+            .skip(2)
+            .next().unwrap()
+            .text().collect::<String>();
+        info!("group name - {group_name}");
+
+        let subgroup_names = {
+            let mut iter = row_iter
+                .next().unwrap()
+                .select(&data_sel)
+                .skip(2); // Skips first two rows
+
+            let sg_a = iter.next();
+            let sg_b = iter.skip(1).next();
+
+            match (sg_a, sg_b) {
+                (Some(a), Some(b)) => Some((a.text().collect::<String>(), b.text().collect::<String>())),
+                _ => None,
+            }
+        };
+        info!("subgroups - {subgroup_names:?}");
+
+        let schedules = row_iter.tuples::<(_, _)>().chunks(6).into_iter().map(|day_rows| {
+            let mut date = None;
+            let classes = day_rows.zip(0..).map(|((class, lecturer), i)| {
+                let mut class_data = class.select(&data_sel);
+                let mut lecturer_data = lecturer.select(&data_sel);
+
+                if i == 0 {
+                    date = class_data.next().map(|date| {
+                        date.text().collect::<String>()
+                    });
+                }
+
+                let hours = class_data.next()
+                    .map_or("<missing>".to_string(), |x| x.text().collect::<String>());
+
+                let left = class_data.next().map(|x| x.text().collect::<String>());
+                let aud = class_data.next().map(|x| x.text().collect::<String>()).unwrap_or_default();
+                let teacher = lecturer_data.next().map(|x| x.text().collect::<String>()).unwrap_or_default();
+                let left =
+                    left.map(|x|
+                        Some(x)
+                            .filter(|x| !x.is_empty())
+                            .map(|name| Class::new(hours.clone(), name, teacher, aud))
+                        );
+
+                let right = class_data.next().map(|x| x.text().collect::<String>());
+                let aud = class_data.next().map(|x| x.text().collect::<String>()).unwrap_or_default();
+                let teacher = lecturer_data.next().map(|x| x.text().collect::<String>()).unwrap_or_default();
+                let right =
+                    right.map(|x|
+                        Some(x)
+                            .filter(|x| !x.is_empty())
+                            .map(|name| Class::new(hours.clone(), name, teacher, aud))
+                        );
+
+                match (left, right) {
+                    (Some(left), Some(right)) => {
+                        (left, right)
+                    },
+                    (Some(dual), None) => {
+                        (dual.clone(), dual)
+                    },
+                    (None, _) => (None, None),
+                }
+            }).collect_vec();
+
+            let date = date.expect("date should always be present");
+            let date = date.split_whitespace().next().unwrap();
+            Schedule::new2(classes, date.to_string())
+        }).collect_vec();
+        let timetables = Timetable::new2(schedules);
+
+        GroupTimetable {
+            name: group_name.clone(),
+            kind: match subgroup_names {
+                Some((sg_a, sg_b)) => types::GroupTimetableKind::Dual((
+                    types::SubGroupTimetable { name: sg_a, timetable: timetables.0 },
+                    types::SubGroupTimetable { name: sg_b, timetable: timetables.1 },
+                )),
+                None => types::GroupTimetableKind::Mono(types::SubGroupTimetable { name: group_name, timetable: timetables.0 })
+            },
+        }
     }
 }

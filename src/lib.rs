@@ -1,6 +1,5 @@
 #[macro_use] extern crate tracing;
 
-pub mod types;
 pub mod parser;
 pub mod scraper;
 

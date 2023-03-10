@@ -1,7 +1,6 @@
 use crate::{
     Parser,
-    types::{
-        TimeFrame,
+    parser::types::{
         Faculty,
         Group,
     },
@@ -50,5 +49,22 @@ impl Scraper {
             );
         }
         Ok(groups)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub enum TimeFrame {
+    Previous,
+    #[default] Current,
+    Preview,
+}
+
+impl TimeFrame {
+    pub fn as_url_part(&self) -> &'static str {
+        match self {
+            TimeFrame::Previous => "old",
+            TimeFrame::Current => "current",
+            TimeFrame::Preview => "new",
+        }
     }
 }
