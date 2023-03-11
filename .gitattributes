@@ -1,0 +1,4 @@
+# See https://github.com/github/linguist/blob/master/docs/overrides.md
+
+# Unmark test_data folder from linguist
+test_data/** -linguist-detectable
