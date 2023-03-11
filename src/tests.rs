@@ -1,4 +1,5 @@
 use crate::parser::types::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn parsing_faculties_01() {
@@ -75,6 +76,14 @@ macro_rules! dual_timetable {
             names: ($name_a.to_string(), $name_b.to_string()),
             timetables: ($timetable_a, $timetable_b),
         })
+    };
+}
+
+macro_rules! mono_timetable {
+    ($timetable:expr) => {
+        GroupTimetableKind::Mono(
+            $timetable,
+        )
     };
 }
 
@@ -344,6 +353,138 @@ fn parsing_schedule_mono_01() {
     let parser = crate::Parser::default();
     let html = include_str!("../test_data/schedule_mono_01.html");
     let timetable = parser.parse_timetable(html);
-    info!("{timetable:?}");
-    assert!(false)
+
+    let timetable_exp = group_timetable!(
+        "21-АП",
+        mono_timetable!(
+            timetable!(
+                schedule!(
+                    "27.02.2023",
+                    None,
+                    class!("10:35-12:00", "Техническая механика (лекции)", "Калинин А.В.", "308д"),
+                    class!("12:10-13:35", "Техническая механика (Практические)", "Калинин А.В.", "308д"),
+                    class!("14:15-15:40", "Техническая механика (Лабораторные)", "Калинин А.В.", "308д"),
+                    None,
+                    None
+                ),
+                schedule!(
+                    "28.02.2023",
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None
+                ),
+                schedule!(
+                    "01.03.2023",
+                    None,
+                    class!("10:35-12:00", "Профессиональная этика (лекции)", "Ярыгин Н.Н.", "440 А"),
+                    class!("12:10-13:35", "Профессиональная этика (Практические)", "Ярыгин Н.Н.", "440 А"),
+                    None,
+                    class!("15:50-17:15", "Практическая подготовка по физической культуре и занятия спортом (элективные курсы) (Практические)", "Преподаватели кафедры ФКС", "СК"),
+                    None
+                ),
+                schedule!(
+                    "02.03.2023",
+                    class!("9:00-10:25", "Электроника (лекции)", "Шамаев Е.П.", "226"),
+                    class!("10:35-12:00", "Практикум по электронике (Лабораторные)", "Шамаев Е.П.", "143а"),
+                    class!("12:10-13:35", "Вычислительные машины, системы и сети (лекции)", "Долгий Н.А.", "324"),
+                    class!("14:15-15:40", "Вычислительные машины, системы и сети (Лабораторные)", "Долгий Н.А.", "261.10"),
+                    None,
+                    None
+                ),
+                schedule!(
+                    "03.03.2023",
+                    class!("9:00-10:25", "Иностранный язык (Практические)", "Тен В.О.", "471"),
+                    class!("10:35-12:00", "Теплотехника (Практические)", "Беркова Е.А.", "207 Б"),
+                    class!("12:10-13:35", "Теплотехника (Лабораторные)", "Беркова Е.А.", "112 Б"),
+                    None,
+                    class!("15:50-17:15", "Практическая подготовка по физической культуре и занятия спортом (элективные курсы) (Практические)", "Преподаватели кафедры ФКС", "СК"),
+                    None
+                ),
+                schedule!(
+                    "04.03.2023",
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None
+                ),
+                schedule!(
+                    "06.03.2023",
+                    class!("9:00-10:25", "Математическое моделирование (Лабораторные)", "Романов М.А.", "401 Г"),
+                    class!("10:35-12:00", "Математическое моделирование (Лабораторные)", "Романов М.А.", "401 Г"),
+                    class!("12:10-13:35", "Иностранный язык (Практические)", "Тен В.О.", "371"),
+                    None,
+                    None,
+                    None
+                ),
+                schedule!(
+                    "07.03.2023",
+                    None,
+                    class!("10:35-12:00", "Методы научных исследований (лекции)", "Будченко Н.С.", "254"),
+                    class!("12:10-13:35", "Методы научных исследований (Лабораторные)", "Будченко Н.С.", "143а"),
+                    class!("14:15-15:40", "Методы научных исследований (Практические)", "Будченко Н.С.", "143а"),
+                    None,
+                    None
+                ),
+                schedule!(
+                    "08.03.2023",
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None
+                ),
+                schedule!(
+                    "09.03.2023",
+                    None,
+                    class!("10:35-12:00", "Электроника (лекции)", "Шамаев Е.П.", "471"),
+                    None,
+                    None,
+                    None,
+                    None
+                ),
+                schedule!(
+                    "10.03.2023",
+                    None,
+                    class!("10:35-12:00", "Теплотехника (лекции)", "Беркова Е.А.", "220 Б"),
+                    class!("12:10-13:35", "Практикум по электронике (Лабораторные)", "Шамаев Е.П.", "345"),
+                    None,
+                    class!("15:50-17:15", "Практическая подготовка по физической культуре и занятия спортом (элективные курсы) (Практические)", "Преподаватели кафедры ФКС", "СК"),
+                    None
+                ),
+                schedule!(
+                    "11.03.2023",
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None
+                )
+            )
+        )
+    );
+    assert_eq!(timetable, timetable_exp);
 }
+
+// The following is the prompt used for generating the macro invocations for mono groups test (while having schedule_mono_01.html opened):
+/*
+Using data only from this page, complete the remaining 11 macro invocations, based on the first:
+```
+schedule!(
+    "27.02.2023",
+    None,
+    class!("10:35-12:00", "Техническая механика (лекции)", "Калинин А.В.", "308д"),
+    class!("12:10-13:35", "Техническая механика (Практические)", "Калинин А.В.", "308д"),
+    class!("14:15-15:40", "Техническая механика (Лабораторные)", "Калинин А.В.", "308д"),
+    None,
+    None
+),
+```
+And until all 11 remaining are completed, please don't respond with anthing except the next macro invocation, as your output is limited to arount 2000 characters, and it may take longer then that, I will say 'continue', after which you simply continue where you left off
+*/
